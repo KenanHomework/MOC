@@ -19,13 +19,23 @@ namespace MOC
             return builder.ToString();
         }
 
+        public static string GetRange(this string str, Range range)
+        {
+            StringBuilder builder = new StringBuilder();
+            for (int i = range.Start.Value; i < range.End.Value; i++)
+            {
+                builder.Append(str[i]);
+            }
+            return builder.ToString();
+        }
+
         public static string GetRangeToTarget(this string str, int start, char target, Direction direction)
         {
             void Change(ref int i)
                 => i = direction == Direction.Back ? i - 1 : i + 1;
             StringBuilder builder = new StringBuilder();
             int stopIndex = direction == Direction.Forwad ? str.Length : 0;
-            for (int i = start; i < stopIndex; Change(ref i))
+            for (int i = start + 1; i < stopIndex; Change(ref i))
             {
                 if (str[i] == target)
                     break;
@@ -76,12 +86,13 @@ namespace MOC
             return builder.ToString();
         }
 
-        public static string Change(this string str, int index, int length, string txt, IgnoreChars ignoreChar)
+        public static string Change(this string str, Range range, string txt)
         {
-            StringBuilder builder = new(str.GetRange(0, index));
-            builder.Append(builder.ToString().MTrim(ref ignoreChar));
+            int start = range.Start.Value;
+            int endOf = (range.End.Value + 1).Big(txt.Length);
+            StringBuilder builder = new(str.GetRange(new(0, start)));
             builder.Append(txt);
-            builder.Append(str.GetRange(index + length.Big(txt.Length), str.Length - (index + length.Big(txt.Length))).MTrim(ref ignoreChar));
+            builder.Append(str.GetRange(endOf, str.Length));
             return builder.ToString();
         }
 
@@ -118,7 +129,7 @@ namespace MOC
             int res = 0;
             foreach (char ch in str)
             {
-                if (General.MathSymbols.Contains(ch))
+                if (General.MathOperations.Contains(ch.ToString()))
                 {
                     res++;
                 }
@@ -127,9 +138,28 @@ namespace MOC
         }
 
         public static bool IsMathSymbol(this char ch)
-            => General.MathSymbols.Contains(ch);
+            => General.MathOperations.Contains(ch.ToString());
 
         public static bool IsNumber(this char ch)
             => ch >= '0' && ch <= '9';
+
+        public static bool HasMember(this string str, List<string> searh)
+        {
+            foreach (var item in searh)
+            {
+                if (str.Contains(item))
+                    return true;
+            }
+            return false;
+        }
+        public static bool HasMember(this string str, List<char> searh)
+        {
+            foreach (var item in searh)
+            {
+                if (str.Contains(item))
+                    return true;
+            }
+            return false;
+        }
     }
 }

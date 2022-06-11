@@ -11,6 +11,7 @@ namespace MOC
     public abstract class General
     {
         static public List<char> MathSymbols = new() { '*', '/', '+', '-', '^', '|', '!' };
+        static public List<string> MathOperations = new() { "*", "/", "+", "-", "^", "|", "!", "hcf", "lcm" };
         static public List<string> MathTherms = new() { "hcf", "lcm" };
 
     }

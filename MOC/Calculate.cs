@@ -8,9 +8,147 @@ namespace MOC
 {
     public class Calculate
     {
-        public Calculate()
+        public double CalculateNums(double num1, double num2, string operation)
         {
+            switch (operation)
+            {
+                case "+":
+                    return Add(num1, num2);
+                case "-":
+                    return Sub(num1, num2);
+                case "/":
+                    return Div(num1, num2);
+                case "*":
+                    return Mul(num1, num2);
+                case "^":
+                    return Power(num1, num2);
+                case "hcf":
+                    return HCF(num1, num2);
+                case "lcm":
+                    return LCM(num1, num2);
+                default:
+                    break;
+            }
+            return 1;
+        }
 
+        public double CalculateNum(double num, string operation)
+        {
+            switch (operation)
+            {
+                case "!":
+                    return Fact(num);
+                case "pip":
+                    return Pip(num);
+                default:
+                    break;
+            }
+            return 1;
+        }
+
+        public double CalculateEquation(string equation)
+        {
+            // 2+13-23+hcf(23,53)
+            double res = 0;
+
+        /* 1~ Calculate Math Funcs*/
+        CalculateFN:
+            if (equation.HasMember(General.MathTherms))
+            {
+                foreach (string func in General.MathTherms)
+                {
+                    while (true)
+                    {
+                        if (!equation.Contains(func))
+                            break;
+
+                        int index = equation.IndexOf(func);
+                        int open = equation.IndexOf(func);
+                        int close = equation.IndexOf(')', open);
+                        index = equation.GetRange(new(index, equation.Length)).IndexOf('(') + index;
+                        List<string> list = equation.GetRangeToTarget(index, ')', Direction.Forwad).Split(',').ToList();
+
+                        if (list.Count == 2)
+                            res = CalculateNums(double.Parse(list[0]), double.Parse(list[1]), func);
+                        else if (list.Count == 1)
+                            res = CalculateNum(double.Parse(list[0]), func);
+
+                        equation = equation.Change(new(open, close), res.ToString());
+                    }
+                    goto CalculateFN;
+                }
+            }
+
+        /* 2~ Calculate Math Symbols */
+        CalculateSY:
+            if (equation.HasMember(General.MathSymbols))
+            {
+                double num1 = 0;
+                double num2 = 0;
+                int index = 0;
+                int indexOfNum1 = 0;
+                int indexOfNum2 = 0;
+                string temp = "";
+
+                foreach (char operation in General.MathSymbols)
+                {
+                    while (true)
+                    {
+                        index = equation.IndexOf(operation);
+                        if (index <= 0)
+                            break;
+
+                        temp = equation.GetRangeToTarget(index, General.MathSymbols, Direction.Back);
+                        indexOfNum1 = index - temp.Length;
+                        num1 = Convert.ToDouble(temp);
+
+                        temp = equation.GetRangeToTarget(index, General.MathSymbols, Direction.Forwad);
+                        indexOfNum2 = index + temp.Length;
+                        num2 = Convert.ToDouble(temp);
+
+                        res = CalculateNums(num1, num2, operation.ToString());
+                        equation = equation.Replace(equation.GetRange(indexOfNum1, indexOfNum2 + 1), res.ToString());
+                    }
+                }
+                goto CalculateSY;
+            }
+            return res;
+        }
+
+        public void CalculateBrackets(ref string equation)
+        {
+            if (!equation.Contains('('))
+                return;
+
+            SolveDoubleOperation(ref equation);
+            CalculateBrackets(ref equation);
+
+            StringBuilder builder = new();
+            int count = equation.Count(ch => ch == '(');
+
+            for (int i = 0; i < count; i++)
+            {
+                int open = equation.LastIndexOf('(');
+                int close = equation.GetRange(new(open, equation.Length)).IndexOf(')') + open;
+
+                if (open > 0 && !equation[open - 1].IsMathSymbol())
+                    equation = equation.AppendAt(open - 1, '*');
+
+                if (equation[open - 1].IsMathSymbol())
+                    continue;
+
+                equation = equation.Change(new(open, close), CalculateEquation(equation.GetRange(new(open, close))).ToString());
+            }
+
+            SolveDoubleOperation(ref equation);
+        }
+
+        public void SolveDoubleOperation(ref string equation)
+        {
+            equation = equation.Replace("+-", "-");
+            equation = equation.Replace("-+", "-");
+            equation = equation.Replace("--", "+");
+            equation = equation.Replace("++", "+");
         }
 
         public double Add(double num1, double num2) => num1 + num2;
@@ -19,7 +157,12 @@ namespace MOC
 
         public double Mul(double num1, double num2) => num1 * num2;
 
-        public double Div(double num1, double num2) => num1 / num2;
+        public double Div(double num1, double num2)
+        {
+            if (num1 == 0 || num2 == 0)
+                throw new Exception("Cannot divide by zero");
+            return num1 / num2;
+        }
 
         public double Power(double num1, double power)
         {
