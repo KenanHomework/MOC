@@ -13,18 +13,9 @@ namespace MOC
             Equation = equation;
         }
 
-        public BracketResult(ref string equation, char seperator)
-        {
-            Equation = equation;
-            Seperator = seperator;
-        }
-
-
         #region Fields
 
         public string Equation { get; set; }
-
-        public char Seperator { get; set; } = '#';
 
         List<double> Results = new();
 

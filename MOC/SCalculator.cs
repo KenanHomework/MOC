@@ -20,15 +20,13 @@ namespace MOC
 
         #region Fields
 
-        public List<string> Historys { get; set; } = new();
+        public List<int> MList { get; set; } = new();
 
         public string equation;
 
         public string EquationForView { get; set; }
 
         public double Result { get; set; }
-
-        char BracketesultSymbol = '#';
 
         #endregion
 
@@ -41,7 +39,7 @@ namespace MOC
             if (!equation.Contains('('))
                 return;
             StringBuilder builder = new();
-            BracketResult br = new(ref equation, BracketesultSymbol);
+            BracketResult br = new(ref equation);
             bool read = false;
             char ch;
             for (int i = 0; i < equation.Length; i++)
@@ -93,10 +91,10 @@ namespace MOC
 
         void SolveDoubleOperation(ref string equation)
         {
-            equation.Replace("+-", "-");
-            equation.Replace("-+", "-");
-            equation.Replace("--", "+");
-            equation.Replace("++", "+");
+            equation = equation.Replace("+-", "-");
+            equation = equation.Replace("-+", "-");
+            equation = equation.Replace("--", "+");
+            equation = equation.Replace("++", "+");
         }
 
         double Calculateequation(string equation)
