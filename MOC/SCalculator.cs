@@ -11,13 +11,13 @@ namespace MOC
         public SCalculator(double num)
         {
             Result = num;
+            EquationForView = num.ToString();
+            equation = num.ToString();
         }
-
-
 
         #region Fields
 
-        public List<int> MList { get; set; } = new();
+        public List<double> MList { get; set; } = new();
 
         public string equation;
 
@@ -29,14 +29,10 @@ namespace MOC
 
         #endregion
 
-
-
         #region Funcs
-
 
         public void Calculate()
         {
-            Cal.CalculateBrackets(ref equation);
             Result = Cal.CalculateEquation(equation);
             equation = Result.ToString();
         }
@@ -44,9 +40,28 @@ namespace MOC
         public void Add(string block)
         {
             equation += block;
+            EquationForView += block;
             Calculate();
         }
 
+        public List<double> M() => MList;
+
+        public void MS() => MList.Add(Result);
+
+        public void MC() => MList.Clear();
+
+        public double MR() => MList.Last();
+
+        public void MPlus(string equation) => MList[MList.Count - 1] += Cal.CalculateEquation(equation);
+
+        public void MMinus(string equation) => MList[MList.Count - 1] -= Cal.CalculateEquation(equation);
+
+        public void C()
+        {
+            Result = 0;
+            equation = "";
+            EquationForView = "";
+        }
         #endregion
     }
 }
