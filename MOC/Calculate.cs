@@ -38,7 +38,7 @@ namespace MOC
             {
                 case "!":
                     return Fact(num);
-                case "pip":
+                case "|":
                     return Pip(num);
                 default:
                     break;
@@ -48,7 +48,13 @@ namespace MOC
 
         public double CalculateEquation(string equation)
         {
-            // 2+13-23+hcf(23,53)
+            try
+            {
+                return Convert.ToDouble(equation);
+            }
+            catch (Exception) { }
+
+            CalculateBrackets(ref equation);
             double res = 0;
 
         /* 1~ Calculate Math Funcs*/
@@ -75,8 +81,8 @@ namespace MOC
 
                         equation = equation.Change(new(open, close), res.ToString());
                     }
-                    goto CalculateFN;
                 }
+                goto CalculateFN;
             }
 
         /* 2~ Calculate Math Symbols */
@@ -95,16 +101,17 @@ namespace MOC
                     while (true)
                     {
                         index = equation.IndexOf(operation);
-                        if (index <= 0)
+                        if (index < 0)
                             break;
 
                         temp = equation.GetRangeToTarget(index, General.MathSymbols, Direction.Back);
                         indexOfNum1 = index - temp.Length;
-                        num1 = Convert.ToDouble(temp);
+                        num1 = CalculateEquation(temp);
 
                         temp = equation.GetRangeToTarget(index, General.MathSymbols, Direction.Forwad);
                         indexOfNum2 = index + temp.Length;
-                        num2 = Convert.ToDouble(temp);
+                        num2 = CalculateEquation(temp);
+
 
                         res = CalculateNums(num1, num2, operation.ToString());
                         equation = equation.Replace(equation.GetRange(indexOfNum1, indexOfNum2 + 1), res.ToString());
@@ -112,6 +119,42 @@ namespace MOC
                 }
                 goto CalculateSY;
             }
+
+        CalculateSYOS:
+            if (equation.HasMember(General.MathSymbolsOneSide))
+            {
+                double num = 0;
+                int index = 0;
+                int indexOfNum = 0;
+                string temp = "";
+
+                foreach (char operation in General.MathSymbolsOneSide)
+                {
+                    while (true)
+                    {
+                        index = equation.IndexOf(operation);
+                        if (index < 0)
+                            break;
+
+                        temp = equation.GetRangeToTarget(index, General.MathSymbols, Direction.Forwad);
+                        indexOfNum = index + temp.Length;
+                        num = Convert.ToDouble(temp);
+
+                        try
+                        {
+                            if (equation[indexOfNum - 1].IsNumber())
+                                equation = equation.AppendAt(indexOfNum - 1, '*');
+                        }
+                        catch (ArgumentOutOfRangeException) { }
+
+
+                        res = CalculateNum(num, operation.ToString());
+                        equation = equation.Replace(equation.GetRange(index, indexOfNum + 1), res.ToString());
+                    }
+                }
+                goto CalculateSYOS;
+            }
+
             return res;
         }
 
@@ -121,7 +164,6 @@ namespace MOC
                 return;
 
             SolveDoubleOperation(ref equation);
-            CalculateBrackets(ref equation);
 
             StringBuilder builder = new();
             int count = equation.Count(ch => ch == '(');
@@ -137,7 +179,11 @@ namespace MOC
                 if (equation[open - 1].IsMathSymbol())
                     continue;
 
-                equation = equation.Change(new(open, close), CalculateEquation(equation.GetRange(new(open, close))).ToString());
+                open = equation.LastIndexOf('(');
+                close = equation.GetRange(new(open, equation.Length)).IndexOf(')') + open;
+                string s = equation.GetRange(new(open + 1, close));
+                double d = CalculateEquation(s);
+                equation = equation.Change(new(open, close), d.ToString());
             }
 
             SolveDoubleOperation(ref equation);

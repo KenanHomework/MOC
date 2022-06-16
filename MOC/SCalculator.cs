@@ -15,6 +15,11 @@ namespace MOC
             equation = num.ToString();
         }
 
+        public SCalculator()
+        {
+
+        }
+
         #region Fields
 
         public List<double> MList { get; set; } = new();
